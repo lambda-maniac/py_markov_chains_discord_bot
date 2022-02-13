@@ -17,6 +17,8 @@ class Bot (discord.Client):
         print(":: Initializing...")
 
     async def on_message(self, event):
+        if event.author.name == self.user.name: return
+        
         message = event.content.lower()
 
         if self.prefix in message:
