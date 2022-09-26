@@ -5,8 +5,9 @@ import json
 from markov import *
 
 class Bot (discord.Client):
-    prefix   = "markov"
-    specials = specials = {"-": " ", "@": " ", prefix: "eu"}
+    prefix      = "markov"
+    specials    = specials = { prefix: "eu" }
+    punctuation = [".", ",", ":", ";", "!", "?"]
 
     with open("data.json", "r") as file:
         data = json.loads(''.join(file.readlines()))
@@ -22,9 +23,9 @@ class Bot (discord.Client):
         message = event.content.lower()
 
         if self.prefix in message:
-            await event.channel.send(generate(self.data))
+            await event.channel.send(generate(self.data, self.punctuation))
 
-        self.data = learn(tokenize(message, self.specials), self.data)
+        self.data = learn(tokenize(message, self.specials, self.punctuation), self.data)
 
         with open("data.json", "w+") as file:
             file.write(json.dumps(self.data, indent = 4))
