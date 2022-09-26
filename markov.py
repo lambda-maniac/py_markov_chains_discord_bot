@@ -19,11 +19,35 @@ def cap_repetitions(string, length):
 
     return new_string
 
-def tokenize(string, specials = {"-": " ", "@": " "}):
+def split_spaces_and_keep_punctuation(string, punctuation):
+    words = []
+    word  = ""
+    
+    for char in string:
+        
+        if char in " \n":
+            if word != "": words.append(word)
+            word = ""
+            continue
+
+        if char in punctuation:
+            if word != "": words.append(word)
+            words.append(char)
+            word = ""
+            continue
+
+        word += char
+
+    return words
+
+def tokenize(string, specials, punctuation):
     for special, to_replace in specials.items():
         string = string.replace(special, to_replace)
         
-    return cap_repetitions((''.join(string)).lower(), 5).strip().split()
+    return split_spaces_and_keep_punctuation(
+        cap_repetitions((''.join(string)).lower(), 5).strip(),
+        punctuation
+    )
 
 def self_pairs(tokens, default = ""):
     return list(zip(tokens, tokens[1:])) if len(tokens) > 1 else [(default, tokens[0])]
@@ -42,14 +66,14 @@ def learn(tokens, __data = {}):
 
     return data
 
-def generate(data):
+def generate(data, punctuation):
     prefix_list = list(data.keys())
     begin       = choice(prefix_list)
 
     suffix_list = list(data[begin].keys())
     after       = choices(suffix_list, weights = [data[begin][key] for key in suffix_list])[0]
-
-    sentence = begin + " " + after
+    
+    sentence = begin + (" " if after not in punctuation else "") + after
 
     while after in data:
         begin = after
@@ -57,6 +81,6 @@ def generate(data):
         suffix_list = list(data[begin].keys())
         after       = choices(suffix_list, weights = [data[begin][key] for key in suffix_list])[0]
 
-        sentence += " " + after
+        sentence += (" " if after not in punctuation else "") + after
 
     return sentence
