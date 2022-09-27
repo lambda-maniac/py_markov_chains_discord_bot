@@ -1,39 +1,59 @@
 import discord
 import secrets
-import json
 
-from markov import *
+from Markov import Chains, Punctuations, Filters
 
-class Bot (discord.Client):
-    prefix      = "markov"
-    specials    = specials = { prefix: "eu" }
-    punctuation = [".", ",", ":", ";", "!", "?"]
+class MarkovBot (discord.Client):
+    
+    def __init__(self):
+        super().__init__(intents = discord.Intents(
+            guilds         = True,
+            guild_messages = True,
+        ))
 
-    with open("data.json", "r") as file:
-        data = json.loads(''.join(file.readlines()))
+        self.name               = "Markov"
 
-        print(f":: Loaded data: {data}")
+        self.max_recursion      = 3
+        self.discord_char_limit = 2000
+        self.punctuations       = Punctuations.default
+        self.filters            = Filters.default \
+                                + [(r"\bMarkov\b", "eu"), (r"\bmarkov\b", "eu")]
+
+        self.markov_chains = Chains \
+            ( self.max_recursion
+            , self.discord_char_limit
+            , self.punctuations
+            , self.filters
+            , {}
+            , "data.json"
+            )
 
     async def on_ready(self):
-        print(":: Initializing...")
+        print("Markov: Running...")
 
     async def on_message(self, event):
-        if event.author.name == self.user.name: return
-        
-        message = event.content.lower()
+        if event.author == self.user: return
 
-        if self.prefix in message:
-            await event.channel.send(generate(self.data, self.punctuation))
+        print("=== [Descriptor] ===")
 
-        self.data = learn(tokenize(message, self.specials, self.punctuation), self.data)
+        author   = event.author
+        message  = event.content
+        channel  = event.channel
+        mentions = event.mentions
 
-        with open("data.json", "w+") as file:
-            file.write(json.dumps(self.data, indent = 4))
+        print(f"Markov: Received message from \"{author.name}\" at \"{channel.name}\": \"{message}\".")
 
-    async def exit(self):
-        print(":: Closing connection...")
-        await self.close()
-        print(":: Done.")
+        if self.name in message \
+        or self.user in mentions:
+            print("Markov: Mentioned, sending text.")
+            await channel.send( self.markov_chains.generate() )
 
-if __name__ == '__main__' \
-    : Bot().run(secrets.AUTH_TOKEN) ; exit(0)
+        print(f"Markov: Learning from last message.")
+        result = self.markov_chains.feed(message)
+        print(f"Markov: Success?={result}")
+
+        print(f"Markov: Saving progress at \"{self.markov_chains.file_name}\".")
+        self.markov_chains.save()
+
+if __name__ == "__main__" \
+    : MarkovBot().run(secrets.AUTH_TOKEN) ; exit(0)
