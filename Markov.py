@@ -45,7 +45,7 @@ def limit_repetitions(string: str, max_repetitions: int) -> str:
 
     return string_prime
 
-def filter_patterns(string: str, filters: list[tuple[str, str]]):
+def filter_patterns(string: str, filters: list[tuple[str, str]]) -> str:
     for (pattern, to_replace) in filters:
         string = sub(pattern, to_replace, string)
 
@@ -59,7 +59,7 @@ def clean(string: str, max_repetitions: int, filters: list[tuple[str, str]]) -> 
         ).strip(), max_repetitions
     )
 
-def tokenize(string: str, punctuations: str, max_repetitions: int, filters: list[tuple[str, str]]):
+def tokenize(string: str, punctuations: str, max_repetitions: int, filters: list[tuple[str, str]]) -> list[str]:
     words = []
     word  = ""
     
@@ -137,7 +137,7 @@ class Chains:
             if (data := JFile.try_load_set_default(self.file_name)):
                 self.words |= data
 
-    def save(self):
+    def save(self) -> None:
         if self.file_name is not String.empty:
             JFile.save(self.file_name, self.words)
             return
@@ -162,7 +162,7 @@ class Chains:
 
         return False
 
-    def generate(self, bias: str = None):
+    def generate(self, bias: str = None) -> str:
 
         if bias and bias in self.words:
             first = bias
