@@ -11,13 +11,15 @@ class MarkovBot (discord.Client):
             guild_messages = True,
         ))
 
-        self.name               = "Markov"
+        self.name = "<BOT NAME HERE>"
 
         self.max_recursion      = 3
         self.discord_char_limit = 2000
         self.punctuations       = Punctuations.default
         self.filters            = Filters.default \
-                                + [(r"\bMarkov\b", "eu"), (r"\bmarkov\b", "eu")]
+                                + [ (r"\b<SELF REFERENCE HERE>\b", "<REPLACEMENT TO SELF REFERENCE")
+                                  , ("<BOT ID HERE>", "<REPLACEMENT FOR SELF REFERENCE>")
+                                  ]
 
         self.markov_chains = Chains \
             ( self.max_recursion
@@ -41,7 +43,18 @@ class MarkovBot (discord.Client):
         channel  = event.channel
         mentions = event.mentions
 
+        _command = message.split()[0]
+
         print(f"Markov: Received message from \"{author.name}\" at \"{channel.name}\": \"{message}\".")
+
+        if _command == "&Override":
+            self.markov_chains.reset()
+            await channel.send("Data overridden")
+            return
+
+        if _command == "&Dump":
+            await channel.send("Dump:", file = discord.File("./data.json"))
+            return
 
         if self.name in message \
         or self.user in mentions:
