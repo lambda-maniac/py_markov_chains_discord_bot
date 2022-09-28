@@ -144,6 +144,13 @@ class Chains:
 
         print("Please create a Markov instance with a file_name, if you wish to save.")
 
+    def reset(self) -> None:
+        self.words = {}
+
+        if self.file_name is not String.empty:
+            JFile.save(self.file_name, self.words)
+            return
+
     def feed(self, string: str) -> bool:
         tokens = tokenize(string, self.punctuations, 5, self.filters)
         pairs  = look_ahead_pairs(tokens)
